@@ -18,6 +18,10 @@ namespace DAL
             servicioPublicos = new List<ServicioPublico>();
         }
         string ruta=@"PagosBanco";
+        public ServicioPublico Buscar(string numero)
+        {
+            return servicioPublicos.Find(S => S.NumeroReciboPago.Equals(numero));
+        }
         public void Guardar(ServicioPublico servicioPublico)
         {
             FileStream fileStream = new FileStream(ruta, FileMode.Append);
@@ -58,26 +62,38 @@ namespace DAL
             return servicioPublicos1;   
         }
        
-        public decimal  totalizar(string nombre, DateTime fecha) 
+        public decimal  Totalizar(string nombre, DateTime fecha) 
         {
             List<ServicioPublico> servicioPublicos = Mostrar();
             return servicioPublicos.Where(S => S.NombreServicioPublico.Equals(nombre) && S.FechaPago.Equals(fecha.ToString("dd/MM/yyyy"))).Sum(S=>S.ValorPago);
         }
-        public int Cuenta(string nombre, DateTime fecha)
+        public int Contar(string nombre, DateTime fecha)
         {
             List<ServicioPublico> servicioPublicos = Mostrar();
             return servicioPublicos.Where(S => S.NombreServicioPublico.Equals(nombre) && S.FechaPago.Equals(fecha.ToString("dd/MM/yyyy"))).Count();
 
         }
-        public void UnNuevoArchivo()
+        public void UnNuevoArchivo(string nombre, DateTime fecha)
         {
-            //string Ruta_UnNuevoArchivo = @"{}.txt"
 
-            //FileStream fileStream = new FileStream(Ruta_UnNuevoArchivo, FileMode.Append);
-            //StreamWriter streamWriter = new StreamWriter(fileStream);
-            //streamWriter.WriteLine(servicioPublico.ToString());
-            //streamWriter.Close();
-            //fileStream.Close();
+            List<ServicioPublico> servicioPublicos1 = Consultar(nombre,fecha);
+            int contar = Contar(nombre, fecha);
+            decimal totalizar= Totalizar(nombre, fecha);
+
+            string Ruta_UnNuevoArchivo = $@"{nombre}{fecha}.txt";
+
+            FileStream fileStream = new FileStream(Ruta_UnNuevoArchivo, FileMode.OpenOrCreate);
+            StreamWriter streamWriter = new StreamWriter(fileStream);
+           
+            streamWriter.WriteLine(nombre+";"+fecha.ToString("dd/MM/yyyy")) ;
+            streamWriter.WriteLine(totalizar.ToString()+";"+contar.ToString());
+            foreach (var item in servicioPublicos1)
+            {
+                streamWriter.WriteLine(item.NumeroReciboPago+";"+item.FechaPago.ToString("dd/MM/yyyy")+";"+item.ValorPago.ToString());
+            }
+            
+            streamWriter.Close();
+            fileStream.Close();
         }
     }
 }
